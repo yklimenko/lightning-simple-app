@@ -1,0 +1,48 @@
+language: node_js
+node_js:
+  - '10.15.3'
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode10.2
+    - os: linux
+      sudo: required
+      dist: trusty
+      services: docker
+
+env:
+  global:
+    - LND_TAG=0bff2ed5545d27d5c8e15c43d0885145267eb2ab
+    - BTCD_TAG=a41498d578a99c1619037746abd916176ea61052
+    - GO_TAG=1.13.3
+    - GOROOT=$HOME/go
+    - GOPATH=$HOME/gocode
+    - PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+    - NAP_TIME=20000
+    - ELECTRON_CACHE=$HOME/.cache/electron
+    - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+
+cache:
+  directories:
+  - $HOME/.npm
+  - $HOME/.cache/electron
+  - $HOME/.cache/electron-builder
+
+before_install:
+  - ./assets/script/install_lnd.sh
+
+script:
+  - npm test
+  - npm run build-storybook
+
+deploy:
+  provider: script
+  script: ./assets/script/build_app.sh
+  skip_cleanup: true
+  on:
+    repo: lightninglabs/lightning-app
+    tags: true
+
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine
